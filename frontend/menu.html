@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Menu Principal</title>
+  <link rel="stylesheet" href="menu.css">
+</head>
+
+<body>
+  <header>
+    <div class="topo">
+      <h3>Menu Principal</h3>
+      <select id="oUsuario" onchange="handleUserAction(this.value)">
+        <option value="">usuario</option>
+        <option value="gerenciar-conta">Gerenciar Conta</option>
+        <option value="sair">Sair</option>
+      </select>
+    </div>
+
+    <nav class="nav">
+      <ul class="nav__menu">
+        <li class="nav__menu-item"><a href="#">Home</a></li>
+
+        <li class="nav__menu-item">
+          <a href="#">Cadastros</a>
+          <ul class="nav__submenu">
+            <li class="nav__submenu-item"><a href="http://localhost:3001/cargo/abrirCrudCargo">Cargo</a></li>
+                        <li class="nav__submenu-item"><a href="http://localhost:3001/pessoa/abrirCrudPessoa">Pessoa</a></li>
+                         <li class="nav__submenu-item"><a href="http://localhost:3001/produto/abrirCrudProduto">Produto</a></li>
+                         <li class="nav__submenu-item"><a href="http://localhost:3001/pedido/abrirCrudPedido">Pedido</a></li>
+            
+          </ul>
+        </li>
+
+        <li class="nav__menu-item">
+          <a href="#">About</a>
+          <ul class="nav__submenu">
+            <li class="nav__submenu-item"><a href="#">Our Company</a></li>
+            <li class="nav__submenu-item"><a href="#">Our Team</a></li>
+            <li class="nav__submenu-item"><a href="#">Our Reach</a></li>
+          </ul>
+        </li>
+
+        <li class="nav__menu-item"><a href="#">Blog</a></li>
+        <li class="nav__menu-item"><a href="#">Contact</a></li>
+
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+
+    <section>
+      <p>section main....</p>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>&copy; 2025 - Meu Site</p>
+  </footer>
+
+  <script src="./menu.js"></script>
+
+</body>
+
+</html>

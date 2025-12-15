@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CRUD - Pessoa</title>
+  <link rel="stylesheet" href="pessoa.css" />
+</head>
+
+<body>
+  <header>
+    <h1>CRUD Pessoa</h1>
+  </header>
+
+  <main>
+    <section class="form-section">
+      <h2>Cadastro de Pessoa</h2>
+
+      <form id="pessoaForm">
+        <!-- Área de busca -->
+        <div class="search-container">
+          <label for="searchCpf">Buscar por CPF:</label>
+          <div class="search-input-group">
+            <input type="text" id="searchCpf" placeholder="Digite o CPF para buscar" maxlength="14" />
+            <button type="button" id="btnBuscar">🔍 Buscar</button>
+
+            <button type="button" id="btnIncluir" class="btn-primary">Incluir</button>
+            <button type="button" id="btnAlterar" class="btn-secondary" style="display: none;">Alterar</button>
+            <button type="button" id="btnExcluir" class="btn-danger" style="display: none;">Excluir</button>
+            <button type="button" id="btnSalvar" class="btn-save" style="display: none;">Salvar</button>
+            <button type="button" id="btnCancelar" class="btn-cancel">Cancelar</button>
+          </div>
+        </div>
+
+        <!-- Campos do formulário -->
+        <fieldset id="formFields">
+          <legend>Dados da Pessoa</legend>
+
+          <div class="form-group">
+            <label for="cpfPessoa">CPF:</label>
+            <input type="text" id="cpfPessoa" name="cpfPessoa" required maxlength="14" placeholder="000.000.000-00" />
+          </div>
+
+          <div class="form-group">
+            <label for="nomePessoa">Nome:</label>
+            <input type="text" id="nomePessoa" name="nomePessoa" required />
+          </div>
+
+          <div class="form-group">
+            <label for="dataNascimentoPessoa">Data de Nascimento:</label>
+            <input type="date" id="dataNascimentoPessoa" name="dataNascimentoPessoa" required />
+          </div>
+
+          <div class="form-group">
+            <label for="enderecoIdEndereco">ID do Endereço:</label>
+            <input type="number" id="enderecoIdEndereco" name="enderecoIdEndereco" required />
+          </div>
+        </fieldset>
+
+        <!-- Checkboxes de tipo de pessoa -->
+        <div class="umParaum">
+          <div class="funcionario">
+            <input type="checkbox" id="checkboxFuncionario" name="checkboxFuncionario" />
+            <label for="checkboxFuncionario">Funcionário</label>
+          </div>
+          <div class="cliente">
+            <input type="checkbox" id="checkboxCliente" name="checkboxCliente" />
+            <label for="checkboxCliente">Cliente</label>
+          </div>
+        </div>
+
+        
+
+      </form>
+    </section>
+
+    <!-- Tabela de pessoas -->
+    <section class="list-section">
+      <h2>Lista de Pessoas</h2>
+      <div class="table-container">
+        <table id="pessoasTable">
+          <thead>
+            <tr>
+              <th>CPF</th>
+              <th>Nome</th>
+              <th>Data de Nascimento</th>
+              <th>Endereço</th>
+            </tr>
+          </thead>
+          <tbody id="pessoasTableBody">
+            <!-- Dados carregados via JavaScript -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 CRUD Pessoa</p>
+  </footer>
+
+  <div id="messageContainer" class="message-container"></div>
+
+  <script src="pessoa.js" defer></script>
+</body>
+
+</html>
