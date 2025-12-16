@@ -117,8 +117,15 @@ function alterarProduto() {
 }
 
 function excluirProduto() {
-    mostrarMensagem('Confirme a exclusão!', 'warning');
-    currentProdutoId = searchId.value;
+    // Captura o ID do produto que está sendo exibido
+    currentProdutoId = searchId.value.trim();
+    
+    if (!currentProdutoId) {
+        mostrarMensagem('Nenhum produto selecionado para excluir', 'warning');
+        return;
+    }
+    
+    mostrarMensagem('Clique em Salvar para confirmar a exclusão!', 'warning');
     bloquearCampos(false);
     mostrarBotoes(false, false, false, false, true, true);
     operacao = 'excluir';
@@ -127,7 +134,7 @@ function excluirProduto() {
 async function salvarOperacao() {
     const formData = new FormData(form);
     const produto = {
-        idproduto: searchId.value,
+        idproduto: searchId.value.trim(),
         nomeproduto: formData.get('nomeproduto'),
         quantidadeemestoque: parseInt(formData.get('quantidadeemestoque')),
         precounitario: parseFloat(formData.get('precounitario'))
@@ -148,13 +155,21 @@ async function salvarOperacao() {
                 body: JSON.stringify(produto)
             });
         } else if (operacao === 'excluir') {
-            response = await fetch(`${API_BASE_URL}/produto/${currentProdutoId}`, { method: 'DELETE' });
+            // Usa o currentProdutoId que foi capturado ao clicar em Excluir
+            if (!currentProdutoId) {
+                mostrarMensagem('ID do produto inválido', 'error');
+                return;
+            }
+            response = await fetch(`${API_BASE_URL}/produto/${currentProdutoId}`, { 
+                method: 'DELETE' 
+            });
         }
 
         if (response && response.ok) {
             mostrarMensagem(`Operação ${operacao} realizada com sucesso!`, 'success');
             limparFormulario();
             carregarProdutos();
+            currentProdutoId = null;
         } else {
             const error = response ? await response.json() : {};
             mostrarMensagem(error.error || 'Erro na operação', 'error');
@@ -166,6 +181,7 @@ async function salvarOperacao() {
 
     mostrarBotoes(true, false, false, false, false, false);
     bloquearCampos(false);
+    operacao = null;
     searchId.focus();
 }
 
@@ -173,6 +189,8 @@ function cancelarOperacao() {
     limparFormulario();
     mostrarBotoes(true, false, false, false, false, false);
     bloquearCampos(false);
+    currentProdutoId = null;
+    operacao = null;
     searchId.focus();
     mostrarMensagem('Operação cancelada', 'info');
 }

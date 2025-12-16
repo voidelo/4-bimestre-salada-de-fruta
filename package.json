@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "cookie-parser": "^1.4.7",
-    "express": "^4.21.2",
+    "express": "^4.22.1",
     "mysql2": "^3.6.5",
     "pg": "^8.16.3"
   },
@@ -23,5 +23,13 @@
     "pessoas"
   ],
   "author": "Radames",
-  "license": "FREE"
+  "license": "FREE",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/voidelo/4-bimestre-salada-de-fruta.git"
+  },
+  "bugs": {
+    "url": "https://github.com/voidelo/4-bimestre-salada-de-fruta/issues"
+  },
+  "homepage": "https://github.com/voidelo/4-bimestre-salada-de-fruta#readme"
 }

@@ -1,7 +1,6 @@
-// Configuração da API, IP e porta.
+// Configuração da API
 const API_BASE_URL = 'http://localhost:3001';
-// Alterado para refletir o campo PK da tabela pedido
-let currentPedidoId = null; 
+let currentPedidoId = null;
 let operacao = null;
 
 // Elementos do DOM
@@ -16,14 +15,12 @@ const btnSalvar = document.getElementById('btnSalvar');
 const pedidosTableBody = document.getElementById('pedidosTableBody');
 const messageContainer = document.getElementById('messageContainer');
 
-// Nomes dos campos do formulário (IDs esperados no HTML)
-const INPUT_ID_DATADOPEDIDO = 'datadopedido';
-const INPUT_ID_CLIENTECPF = 'clientepessoacpfpessoa';
-const INPUT_ID_FUNCIONARIOCPF = 'funcionariopessoacpfpessoa';
-
-// Carregar lista de pedidos ao inicializar
+// Inicialização
 document.addEventListener('DOMContentLoaded', () => {
     carregarPedidos();
+    mostrarBotoes(true, false, false, false, false, false);
+    bloquearCampos(false);
+    searchId.focus();
 });
 
 // Event Listeners
@@ -34,34 +31,34 @@ btnExcluir.addEventListener('click', excluirPedido);
 btnCancelar.addEventListener('click', cancelarOperacao);
 btnSalvar.addEventListener('click', salvarOperacao);
 
-mostrarBotoes(true, false, false, false, false, false); // mostrarBotoes(btBuscar, btIncluir, btAlterar, btExcluir, btSalvar, btCancelar)
-bloquearCampos(false); // libera pk e bloqueia os demais campos
+// Permitir buscar com Enter
+searchId.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        buscarPedido();
+    }
+});
 
-// Função para mostrar mensagens
+// ---------- Funções utilitárias ----------
 function mostrarMensagem(texto, tipo = 'info') {
     messageContainer.innerHTML = `<div class="message ${tipo}">${texto}</div>`;
-    setTimeout(() => {
-        messageContainer.innerHTML = '';
-    }, 3000);
+    setTimeout(() => messageContainer.innerHTML = '', 4000);
 }
 
-function bloquearCampos(bloquearPrimeiro) {
+function bloquearCampos(habilitar) {
     const inputs = form.querySelectorAll('input, select');
-    inputs.forEach((input, index) => {
-        // Correção para ignorar o botão de busca que pode ser o primeiro elemento do form
-        if (input.id === 'searchId') { 
-            // Elemento de busca (PK)
-            input.disabled = bloquearPrimeiro;
+    inputs.forEach(input => {
+        if (input.id === 'searchId') {
+            input.disabled = (operacao === 'alterar' || operacao === 'excluir');
         } else {
-            // Demais elementos (campos de dados)
-            input.disabled = !bloquearPrimeiro;
+            input.disabled = !habilitar;
         }
     });
 }
 
-// Função para limpar formulário
 function limparFormulario() {
     form.reset();
+    currentPedidoId = null;
 }
 
 function mostrarBotoes(btBuscar, btIncluir, btAlterar, btExcluir, btSalvar, btCancelar) {
@@ -73,48 +70,45 @@ function mostrarBotoes(btBuscar, btIncluir, btAlterar, btExcluir, btSalvar, btCa
     btnCancelar.style.display = btCancelar ? 'inline-block' : 'none';
 }
 
-// Função para formatar data para exibição (DD/MM/YYYY)
-function formatarData(dataString) {
-    if (!dataString) return '';
-    const data = new Date(dataString + 'T00:00:00'); 
-    if (isNaN(data.getTime())) return dataString; 
-    return data.toLocaleDateString('pt-BR');
-}
-
-// Função para preencher input de data com formato YYYY-MM-DD (necessário para inputs type="date")
-function preencherInputData(dataString) {
+// Função para formatar data para o input (YYYY-MM-DD)
+function formatarDataInput(dataString) {
     if (!dataString) return '';
     return dataString.split('T')[0];
 }
 
-// Função para buscar pedido por ID
+// Função para formatar data para exibição (DD/MM/YYYY)
+function formatarDataExibicao(dataString) {
+    if (!dataString) return '';
+    const data = new Date(dataString + 'T00:00:00');
+    if (isNaN(data.getTime())) return dataString;
+    return data.toLocaleDateString('pt-BR');
+}
+
+// ---------- CRUD ----------
 async function buscarPedido() {
     const id = searchId.value.trim();
+    
     if (!id) {
         mostrarMensagem('Digite um ID para buscar', 'warning');
+        searchId.focus();
         return;
     }
-    // Não bloquear campos aqui, pois isso é feito em 'preencherFormulario' 
-    // ou ao final da função, dependendo do resultado da busca.
-    // bloquearCampos(false); // Removido daqui
-    searchId.focus();
+
     try {
         const response = await fetch(`${API_BASE_URL}/pedido/${id}`);
-
+        
         if (response.ok) {
             const pedido = await response.json();
             preencherFormulario(pedido);
-
-            mostrarBotoes(true, false, true, true, false, false); 
-            mostrarMensagem('Pedido encontrada!', 'success');
-
+            mostrarBotoes(true, false, true, true, false, false);
+            bloquearCampos(false);
+            mostrarMensagem('Pedido encontrado!', 'success');
         } else if (response.status === 404) {
             limparFormulario();
             searchId.value = id;
-            mostrarBotoes(true, true, false, false, false, false); 
-            mostrarMensagem('Pedido não encontrada. Você pode incluir uma nova pedido.', 'info');
-            // Aqui mantemos a PK liberada para a próxima ação (incluir)
-            bloquearCampos(false); 
+            mostrarBotoes(true, true, false, false, false, false);
+            bloquearCampos(false);
+            mostrarMensagem('Pedido não encontrado. Você pode incluir um novo.', 'info');
         } else {
             throw new Error('Erro ao buscar pedido');
         }
@@ -124,177 +118,180 @@ async function buscarPedido() {
     }
 }
 
-// Função para preencher formulário com dados do pedido
 function preencherFormulario(pedido) {
-    // Atualiza currentPedidoId
     currentPedidoId = pedido.idpedido;
     searchId.value = pedido.idpedido;
     
-    // CORREÇÃO: Adicionando checagem de existência do elemento antes de tentar atribuir valor
-    const dataInput = document.getElementById(INPUT_ID_DATADOPEDIDO);
-    if (dataInput) {
-        dataInput.value = preencherInputData(pedido.datadopedido);
-    } else {
-        console.warn(`Elemento HTML com ID "${INPUT_ID_DATADOPEDIDO}" não encontrado.`);
-    }
-
-    const clienteInput = document.getElementById(INPUT_ID_CLIENTECPF);
-    if (clienteInput) {
-        clienteInput.value = pedido.clientepessoacpfpessoa || '';
-    } else {
-        console.warn(`Elemento HTML com ID "${INPUT_ID_CLIENTECPF}" não encontrado.`);
-    }
-
-    const funcionarioInput = document.getElementById(INPUT_ID_FUNCIONARIOCPF);
-    if (funcionarioInput) {
-        funcionarioInput.value = pedido.funcionariopessoacpfpessoa || '';
-    } else {
-        console.warn(`Elemento HTML com ID "${INPUT_ID_FUNCIONARIOCPF}" não encontrado.`);
-    }
-
-    // BLOQUEIA os campos de dados após o preenchimento (PK fica liberada)
-    bloquearCampos(false); 
+    // Preenche a data no formato correto para o input type="date"
+    document.getElementById('datadoPedido').value = formatarDataInput(pedido.datadopedido) || '';
+    document.getElementById('clientepessoacpfpessoa').value = pedido.clientepessoacpfpessoa || '';
+    document.getElementById('funcionariopessoacpfpessoa').value = pedido.funcionariopessoacpfpessoa || '';
 }
 
-// Função para incluir pedido
-async function incluirPedido() {
-    mostrarMensagem('Digite os dados!', 'success');
-    currentPedidoId = searchId.value;
-    limparFormulario();
-    searchId.value = currentPedidoId;
-    bloquearCampos(true); // Bloqueia a PK (idpedido) e libera os demais campos
-
-    mostrarBotoes(false, false, false, false, true, true); 
-    // Tentativa de foco com checagem de segurança
-    const dataInput = document.getElementById(INPUT_ID_DATADOPEDIDO);
-    if (dataInput) {
-        dataInput.focus();
+function incluirPedido() {
+    const id = searchId.value.trim();
+    
+    if (!id) {
+        mostrarMensagem('Digite um ID antes de incluir', 'warning');
+        searchId.focus();
+        return;
     }
+    
+    mostrarMensagem('Preencha os dados do pedido!', 'info');
+    currentPedidoId = id;
+    
+    // Limpa apenas os campos, mantém o ID
+    document.getElementById('datadoPedido').value = '';
+    document.getElementById('clientepessoacpfpessoa').value = '';
+    document.getElementById('funcionariopessoacpfpessoa').value = '';
+    
+    bloquearCampos(true);
+    mostrarBotoes(false, false, false, false, true, true);
+    document.getElementById('datadoPedido').focus();
     operacao = 'incluir';
 }
 
-// Função para alterar pedido
-async function alterarPedido() {
-    mostrarMensagem('Digite os dados!', 'success');
-    bloquearCampos(true); // Bloqueia a PK (idpedido) e libera os demais campos
-    mostrarBotoes(false, false, false, false, true, true);
-    // Tentativa de foco com checagem de segurança
-    const dataInput = document.getElementById(INPUT_ID_DATADOPEDIDO);
-    if (dataInput) {
-        dataInput.focus();
+function alterarPedido() {
+    if (!currentPedidoId) {
+        mostrarMensagem('Busque um pedido primeiro', 'warning');
+        return;
     }
+    
+    mostrarMensagem('Altere os dados do pedido!', 'info');
+    bloquearCampos(true);
+    mostrarBotoes(false, false, false, false, true, true);
+    document.getElementById('datadoPedido').focus();
     operacao = 'alterar';
 }
 
-// ... (Código anterior)
-
-// Função para excluir pedido
-async function excluirPedido() {
-    mostrarMensagem('Preparando exclusão...', 'info');
-    currentPedidoId = searchId.value;
-
-    // Ação: Limpar e desabilitar todos os campos, exceto o de busca
-    limparFormulario();
-    searchId.value = currentPedidoId; // Mantém o ID na tela
+function excluirPedido() {
+    if (!currentPedidoId) {
+        mostrarMensagem('Busque um pedido primeiro', 'warning');
+        return;
+    }
     
-    // Desabilita todos os campos para exclusão
-    const inputs = form.querySelectorAll('input, select');
-    inputs.forEach(input => input.disabled = true);
-    searchId.disabled = true; // Desabilita também o campo de busca
-    
-    // Se o backend precisa de confirmação, é aqui que deve ser tratado.
-    
-    mostrarBotoes(false, false, false, false, true, true); // Mostrar Salvar e Cancelar
+    mostrarMensagem('Clique em SALVAR para confirmar a exclusão!', 'warning');
+    bloquearCampos(false);
+    mostrarBotoes(false, false, false, false, true, true);
     operacao = 'excluir';
 }
 
 async function salvarOperacao() {
-    console.log('Operação:', operacao + ' - currentPedidoId: ' + currentPedidoId + ' - searchId: ' + searchId.value);
-
-    // Ajuste: Apenas cria o objeto 'pedido' se a operação NÃO for exclusão.
-    // A exclusão só precisa do ID na URL.
-    let pedido = null;
-    if (operacao !== 'excluir') {
-        const formData = new FormData(form);
-        pedido = {
-            idpedido: parseInt(searchId.value), 
-            datadopedido: formData.get(INPUT_ID_DATADOPEDIDO),
-            clientepessoacpfpessoa: formData.get(INPUT_ID_CLIENTECPF),
-            funcionariopessoacpfpessoa: formData.get(INPUT_ID_FUNCIONARIOCPF)
-        };
+    if (!operacao) {
+        mostrarMensagem('Nenhuma operação em andamento', 'warning');
+        return;
     }
 
-    let response = null;
-    let url = `${API_BASE_URL}/pedido`;
-    let method = '';
-    
-    try {
-        // ... (lógica de definição de method e url)
+    const formData = new FormData(form);
+    const pedido = {
+        idpedido: parseInt(searchId.value.trim()),
+        datadopedido: formData.get('datadoPedido'),
+        clientepessoacpfpessoa: formData.get('clientepessoacpfpessoa')?.trim(),
+        funcionariopessoacpfpessoa: formData.get('funcionariopessoacpfpessoa')?.trim()
+    };
 
-        if (operacao === 'incluir') {
-            method = 'POST';
-        } else if (operacao === 'alterar') {
-            method = 'PUT';
-            url = `${API_BASE_URL}/pedido/${currentPedidoId}`;
-        } else if (operacao === 'excluir') {
-            method = 'DELETE';
-            url = `${API_BASE_URL}/pedido/${currentPedidoId}`;
-        } else {
+    // Validações
+    if (operacao !== 'excluir') {
+        if (!pedido.datadopedido) {
+            mostrarMensagem('Data do pedido é obrigatória', 'warning');
+            document.getElementById('datadoPedido').focus();
             return;
         }
+        
+        if (!pedido.clientepessoacpfpessoa) {
+            mostrarMensagem('CPF do cliente é obrigatório', 'warning');
+            document.getElementById('clientepessoacpfpessoa').focus();
+            return;
+        }
+        
+        if (!pedido.funcionariopessoacpfpessoa) {
+            mostrarMensagem('CPF do funcionário é obrigatório', 'warning');
+            document.getElementById('funcionariopessoacpfpessoa').focus();
+            return;
+        }
+        
+        if (isNaN(pedido.idpedido)) {
+            mostrarMensagem('ID inválido', 'warning');
+            searchId.focus();
+            return;
+        }
+    }
 
-        const config = {
-            method: method,
-            headers: {
-                'Content-Type': 'application/json'
+    let response;
+    try {
+        if (operacao === 'incluir') {
+            response = await fetch(`${API_BASE_URL}/pedido`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(pedido)
+            });
+        } else if (operacao === 'alterar') {
+            response = await fetch(`${API_BASE_URL}/pedido/${currentPedidoId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(pedido)
+            });
+        } else if (operacao === 'excluir') {
+            if (!currentPedidoId) {
+                mostrarMensagem('ID do pedido inválido', 'error');
+                return;
             }
-        };
-
-        // Envia o corpo apenas se NÃO for exclusão
-        if (operacao !== 'excluir') {
-            config.body = JSON.stringify(pedido);
+            response = await fetch(`${API_BASE_URL}/pedido/${currentPedidoId}`, { 
+                method: 'DELETE' 
+            });
         }
 
-        response = await fetch(url, config);
-
-        if (response.ok) {
-            // ... (resto da lógica de sucesso)
-            mostrarMensagem(`Operação ${operacao} realizada com sucesso!`, 'success');
+        if (response && response.ok) {
+            const mensagem = operacao === 'incluir' ? 'Pedido incluído com sucesso!' :
+                           operacao === 'alterar' ? 'Pedido alterado com sucesso!' :
+                           'Pedido excluído com sucesso!';
+            
+            mostrarMensagem(mensagem, 'success');
             limparFormulario();
-            carregarPedidos();
+            await carregarPedidos();
+            
         } else {
-            // ... (resto da lógica de erro)
-            if (response.status === 400 && operacao === 'excluir') {
-                mostrarMensagem('Erro 400: Pedido não pode ser excluído. Pode haver dados dependentes (Chave Estrangeira).', 'error');
-            } else if (operacao !== 'excluir' && response.headers.get('content-type')?.includes('application/json')) {
-                const error = await response.json();
-                mostrarMensagem(error.error || `Erro ao ${operacao} pedido`, 'error');
+            const error = response ? await response.json() : {};
+            
+            // Tratamento específico para erros conhecidos
+            if (response && response.status === 409) {
+                if (error.tipo === 'PEDIDO_COM_PRODUTOS') {
+                    mostrarMensagem('❌ ' + error.error, 'error');
+                } else if (error.tipo === 'ID_DUPLICADO') {
+                    mostrarMensagem('❌ ' + error.error, 'error');
+                } else {
+                    mostrarMensagem('❌ ' + (error.error || 'Conflito na operação'), 'error');
+                }
+            } else if (response && response.status === 400 && error.tipo === 'FK_INVALIDA') {
+                mostrarMensagem('❌ ' + error.error, 'error');
             } else {
-                mostrarMensagem(`Erro ao ${operacao} pedido. Status: ${response.status}`, 'error');
+                mostrarMensagem('❌ ' + (error.error || 'Erro na operação'), 'error');
             }
         }
     } catch (error) {
         console.error('Erro:', error);
-        mostrarMensagem('Erro de comunicação com a API', 'error');
+        mostrarMensagem('❌ Erro ao conectar com o servidor', 'error');
     }
 
-    // Restaura o estado inicial
+    // Resetar estado
     mostrarBotoes(true, false, false, false, false, false);
-    bloquearCampos(false); 
-    document.getElementById('searchId').focus();
+    bloquearCampos(false);
+    operacao = null;
+    currentPedidoId = null;
+    searchId.focus();
 }
 
-// ... (Resto do código sem alterações)
-// Função para cancelar operação
 function cancelarOperacao() {
     limparFormulario();
     mostrarBotoes(true, false, false, false, false, false);
     bloquearCampos(false);
-    document.getElementById('searchId').focus();
+    currentPedidoId = null;
+    operacao = null;
+    searchId.focus();
     mostrarMensagem('Operação cancelada', 'info');
 }
 
-// Função para carregar lista de pedidos
+// ---------- Listagem ----------
 async function carregarPedidos() {
     try {
         const response = await fetch(`${API_BASE_URL}/pedido`);
@@ -310,10 +307,20 @@ async function carregarPedidos() {
     }
 }
 
-// Função para renderizar tabela de pedidos
 function renderizarTabelaPedidos(pedidos) {
     pedidosTableBody.innerHTML = '';
-
+    
+    if (pedidos.length === 0) {
+        pedidosTableBody.innerHTML = `
+            <tr>
+                <td colspan="4" style="text-align: center; padding: 20px; color: #666;">
+                    Nenhum pedido cadastrado
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
     pedidos.forEach(pedido => {
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -322,7 +329,7 @@ function renderizarTabelaPedidos(pedidos) {
                     ${pedido.idpedido}
                 </button>
             </td>
-            <td>${formatarData(pedido.datadopedido)}</td>
+            <td>${formatarDataExibicao(pedido.datadopedido)}</td>
             <td>${pedido.clientepessoacpfpessoa || ''}</td>
             <td>${pedido.funcionariopessoacpfpessoa || ''}</td>
         `;
@@ -330,7 +337,6 @@ function renderizarTabelaPedidos(pedidos) {
     });
 }
 
-// Função para selecionar pedido da tabela
 async function selecionarPedido(id) {
     searchId.value = id;
     await buscarPedido();

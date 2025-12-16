@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRUD - Endereço</title>
+    <link rel="stylesheet" href="endereco.css">
+</head>
+
+<body>
+    <header>
+        <h1>📍 CRUD Endereço</h1>
+    </header>
+
+    <main>
+        <section class="form-section">
+            <h2>Cadastro de Endereço</h2>
+
+            <form id="enderecoForm">
+                <div class="search-container">
+                    <label for="searchId">Buscar por ID:</label>
+                    <div class="search-input-group">
+                        <input type="number" id="searchId" placeholder="Digite o ID para buscar" autofocus>
+                        <button type="button" id="btnBuscar" class="btn-search">🔍 Buscar</button>
+                        <button type="button" id="btnIncluir" class="btn-primary">➕ Incluir</button>
+                        <button type="button" id="btnAlterar" class="btn-secondary" style="display: none;">✏️ Alterar</button>
+                        <button type="button" id="btnExcluir" class="btn-danger" style="display: none;">🗑️ Excluir</button>
+                        <button type="button" id="btnSalvar" class="btn-save" style="display: none;">💾 Salvar</button>
+                        <button type="button" id="btnCancelar" class="btn-cancel">❌ Cancelar</button>
+                    </div>
+                </div>
+
+                <fieldset id="formFields">
+                    <legend>📋 Dados do Endereço</legend>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="logradouro">🏠 Logradouro: *</label>
+                            <input type="text" id="logradouro" name="logradouro" 
+                                   placeholder="Ex: Rua das Flores, Avenida Brasil..." 
+                                   maxlength="100" required>
+                        </div>
+
+                        <div class="form-group form-group-small">
+                            <label for="numero">🔢 Número:</label>
+                            <input type="text" id="numero" name="numero" 
+                                   placeholder="123" maxlength="10">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="referencia">📌 Referência:</label>
+                        <input type="text" id="referencia" name="referencia" 
+                               placeholder="Próximo ao mercado, ao lado da igreja..." 
+                               maxlength="45">
+                        <small>Campo opcional - Adicione um ponto de referência para facilitar a localização</small>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="cep">📮 CEP: *</label>
+                            <input type="text" id="cep" name="cep" 
+                                   placeholder="00000-000" 
+                                   maxlength="9" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="cidadeidcidade">🏙️ ID da Cidade: *</label>
+                            <input type="number" id="cidadeidcidade" name="cidadeidcidade" 
+                                   placeholder="Digite o ID da cidade" required>
+                            <small>Informe o ID da cidade cadastrada no sistema</small>
+                        </div>
+                    </div>
+
+                    <div class="form-info">
+                        <small>* Campos obrigatórios</small>
+                    </div>
+                </fieldset>
+            </form>
+        </section>
+
+        <section class="list-section">
+            <h2>📋 Lista de Endereços</h2>
+            <div class="table-container">
+                <table id="enderecosTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Logradouro</th>
+                            <th>Número</th>
+                            <th>Referência</th>
+                            <th>CEP</th>
+                            <th>ID Cidade</th>
+                        </tr>
+                    </thead>
+                    <tbody id="enderecosTableBody">
+                        <tr>
+                            <td colspan="6" style="text-align: center; padding: 20px;">
+                                Carregando endereços...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 CRUD Endereço | Sistema de Gerenciamento</p>
+    </footer>
+
+    <div id="messageContainer" class="message-container"></div>
+
+    <script src="endereco.js" defer></script>
+</body>
+
+</html>
